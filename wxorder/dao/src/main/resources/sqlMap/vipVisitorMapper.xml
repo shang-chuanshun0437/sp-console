@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.weiyi.wx.order.dao.mapper.VipVisitorMapper" >
+    <resultMap id="BaseResultMap" type="com.weiyi.wx.order.dao.entity.VipVisitor" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="user_phone" property="userPhone" jdbcType="BIGINT" />
+        <result column="vip_id" property="vipId" jdbcType="VARCHAR" />
+        <result column="real_amount" property="realAmount" jdbcType="DOUBLE" />
+        <result column="consum_count" property="consumCount" jdbcType="BIGINT" />
+        <result column="create_time" property="createTime" jdbcType="VARCHAR" />
+        <result column="valid_time" property="validTime" jdbcType="VARCHAR" />
+        <result column="update_time" property="updateTime" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <insert id="addVip" parameterType="com.weiyi.wx.order.dao.entity.VipVisitor">
+       INSERT INTO
+       		vip (user_phone,vip_id,real_amount,consum_count,create_time,update_time,valid_time)
+       	VALUES
+       		(#{userPhone},#{vipId}, #{realAmount},#{consumCount},#{createTime},#{updateTime},#{validTime})
+    </insert>
+
+    <select id="queryVip" parameterType="com.weiyi.wx.order.dao.entity.VipVisitor" resultType="com.weiyi.wx.order.dao.entity.VipVisitor">
+        select * from vip where user_phone = #{userPhone} and vip_id = #{vipId}
+    </select>
+    <select id="queryVipById" parameterType="int" resultType="com.weiyi.wx.order.dao.entity.VipVisitor">
+        select * from vip where id = #{id}
+    </select>
+
+    <select id="queryVipList" parameterType="com.weiyi.wx.order.dao.request.GetVipVisitorListRequest" resultType="com.weiyi.wx.order.dao.entity.VipVisitor">
+        select *
+        from vip
+        <where>
+            user_phone = #{userPhone}
+            <if test="vipId != null and vipId != ''">
+                AND vip_id = #{vipId}
+            </if>
+            <if test="beginTime != null and '' != beginTime and endTime != null and '' != endTime">
+                AND create_time between #{beginTime} and #{endTime}
+            </if>
+            <if test="currentPage != null and currentPage != ''">
+                limit #{currentPage},10
+            </if>
+        </where>
+    </select>
+    <select id="queryVipListCount" parameterType="com.weiyi.wx.order.dao.request.GetVipVisitorListRequest" resultType="int">
+        select COUNT(*)
+        from vip
+        <where>
+            user_phone = #{userPhone}
+            <if test="vipId != null and vipId != ''">
+                AND vip_id = #{vipId}
+            </if>
+            <if test="beginTime != null and '' != beginTime and endTime != null and '' != endTime">
+                AND create_time between #{beginTime} and #{endTime}
+            </if>
+        </where>
+    </select>
+    <select id="queryAllVipConsume" parameterType="com.weiyi.wx.order.dao.request.GetAllVipConsumeRequest" resultType="com.weiyi.wx.order.dao.entity.StoreOrder">
+        select *
+        from store_order
+        <where>
+            user_phone = #{userPhone} and vip_num is not null
+            <if test="beginTime != null and '' != beginTime and endTime != null and '' != endTime">
+                AND create_time between #{beginTime} and #{endTime}
+            </if>
+        </where>
+    </select>
+    <select id="queryAllVipConsumeMoney" parameterType="com.weiyi.wx.order.dao.request.GetAllVipConsumeRequest" resultType="Double">
+        select SUM(real_amount)
+        from store_order
+        <where>
+            user_phone = #{userPhone} and vip_num is not null and pay_type != 1
+            <if test="beginTime != null and '' != beginTime and endTime != null and '' != endTime">
+                AND create_time between #{beginTime} and #{endTime}
+            </if>
+        </where>
+    </select>
+    <select id="queryAllMoney" parameterType="com.weiyi.wx.order.dao.request.GetAllVipConsumeRequest" resultType="Double">
+        select SUM(real_amount)
+        from store_order
+        <where>
+            user_phone = #{userPhone} and pay_type != 1
+            <if test="beginTime != null and '' != beginTime and endTime != null and '' != endTime">
+                AND create_time between #{beginTime} and #{endTime}
+            </if>
+        </where>
+    </select>
+    <select id="queryVipConsumeCount" parameterType="com.weiyi.wx.order.dao.request.GetVipConsumeRequest" resultType="int">
+        select COUNT(DISTINCT order_id)
+        from order_info
+        WHERE user_phone = #{userPhone} and vip_num = #{vipId}
+    </select>
+    <select id="queryVipConsumeList" parameterType="com.weiyi.wx.order.dao.request.GetVipConsumeRequest" resultType="com.weiyi.wx.order.dao.entity.StoreOrder">
+        select so.*
+        from order_info oi,store_order so
+        where oi.user_phone = #{userPhone} and oi.vip_num = #{vipId} and oi.order_id = so.order_id
+        GROUP BY oi.order_id limit #{currentPage},10
+    </select>
+    <delete id="deleteVip" parameterType="com.weiyi.wx.order.dao.entity.VipVisitor">
+        delete from vip where user_phone = #{userPhone} and vip_id = #{vipId}
+    </delete>
+    <delete id="deleteVipById" parameterType="int">
+        delete from vip where id = #{id}
+    </delete>
+</mapper>
